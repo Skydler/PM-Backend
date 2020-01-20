@@ -3,42 +3,75 @@ from users.models import CustomUser
 # from django.urls import reverse
 
 
-class Product(models.Model):
+class BaseProduct(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200, blank=True)
 
-    current_amount = models.FloatField(default=0)
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
-    components = models.ManyToManyField(
-        'self', symmetrical=False, related_name='compose', blank=True, through='ProductComposition')
-    owner = models.ForeignKey(
-        CustomUser, related_name='products', on_delete=models.CASCADE)
+    current_amount = models.FloatField(
+        default=0, help_text='amount of product in existence')
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        abstract = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=['owner', 'name'], name='unique_name_for_user')
+        ]
+
+
+class SubProduct(BaseProduct):
+    price = models.FloatField(help_text='Price of a milliliter of the product')
+
+    def calculate_units_for_product(self, product):
+        """
+        Calculates how many units of a product are makeable with the existent subproduct
+        """
+        needed_amount = self.get_quantity_for_product(product)
+        return self.current_amount / needed_amount
+
+    def calculate_price_with_quantity(self, product):
+        """
+        Calculates the price of the subproduct considering the quantity that composes a product
+        """
+        quantity = self.get_quantity_for_product(product)
+        return quantity * self.price
+
+    def get_quantity_for_product(self, product):
+        composition = self.productcomposition_set.get(product=product)
+        return composition.quantity
+
+
+class Product(BaseProduct):
+    components = models.ManyToManyField(
+        SubProduct, blank=True, through='ProductComposition')
+
     @property
-    def input_amount(self):
+    def makeable_amount(self):
         """
         Calculates the amount of product makeable with the existent subproducts.
-        If this function is called from a input product returns the current_amount
         """
         components = self.get_components()
         if components:
-            subproducts_makeable_amount = map(
-                self._calculate_product_makeable_quantity, components)
-            product_amount = min(subproducts_makeable_amount)
+            subproducts_makeable_amounts = map(
+                lambda comp: comp.calculate_units_for_product(self), components)
+            product_amount = min(subproducts_makeable_amounts)
             return product_amount
 
-        return self.current_amount
-
-    def _calculate_product_makeable_quantity(self, subproduct):
-        relation = subproduct.productcomposition_set.get(product=self)
-
-        needed_amount = relation.quantity
-        existent_amount = subproduct.current_amount
-
-        return existent_amount / needed_amount
+    @property
+    def base_price_liter(self):
+        """
+        Calculates the price of a liter of the product
+        """
+        components = self.get_components()
+        if components:
+            components_prices = map(
+                lambda comp: comp.calculate_price_with_quantity(self), components)
+            price = sum(components_prices)
+            return price
 
     def get_components(self):
         return self.components.all()
@@ -46,17 +79,12 @@ class Product(models.Model):
     # def get_absolute_url(self):
     #     return reverse('product', args=[str(self.pk)])
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['owner', 'name'], name='unique_product_for_user')
-        ]
-
 
 class ProductComposition(models.Model):
-    product = models.ForeignKey(Product, related_name='composed_products', on_delete=models.CASCADE)
-    subproduct = models.ForeignKey(Product, related_name='subproducts', on_delete=models.CASCADE)
-    quantity = models.FloatField()
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    subproduct = models.ForeignKey(SubProduct, on_delete=models.CASCADE)
+
+    quantity = models.FloatField(help_text='quantity in milliliters')
 
     def __str__(self):
         return f'Product Composition: {self.id}'
@@ -64,8 +92,8 @@ class ProductComposition(models.Model):
 
 class Measure(models.Model):
     name = models.CharField(max_length=30)
-    size = models.FloatField()
-    price = models.FloatField()
+    size = models.FloatField(help_text='size in liters')
+    price = models.FloatField(help_text='selling price')
 
     product = models.ForeignKey(
         Product, related_name='measures', on_delete=models.CASCADE)
@@ -75,19 +103,21 @@ class Measure(models.Model):
 
     @property
     def production_cost(self):
-        components = self.product.get_components()
-        if components:
-            components_values = map(self._get_component_prod_cost, components)
-            return sum(components_values)
-        return self.price
-
-    def _get_component_prod_cost(self, component):
-        # Asumo que el componente tiene una medida igual a del producto final
-        measure = component.measures.get(size=self.size)
-        return measure.production_cost
+        product_price = self.product.base_price_liter * self.size
+        packaging_price = sum(
+            map(lambda obj: obj.price, self.packaging_objects))
+        return product_price + packaging_price
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['product', 'size'], name='unique_size_for_product')
         ]
+
+
+class PackagingObject(BaseProduct):
+    current_amount = models.IntegerField()
+    price = models.FloatField()
+
+    measure = models.ForeignKey(
+        Measure, related_name='packaging_objects', on_delete=models.CASCADE)
