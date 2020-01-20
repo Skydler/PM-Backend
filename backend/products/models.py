@@ -17,10 +17,6 @@ class BaseProduct(models.Model):
 
     class Meta:
         abstract = True
-        constraints = [
-            models.UniqueConstraint(
-                fields=['owner', 'name'], name='unique_name_for_user')
-        ]
 
 
 class SubProduct(BaseProduct):
@@ -43,6 +39,12 @@ class SubProduct(BaseProduct):
     def get_quantity_for_product(self, product):
         composition = self.productcomposition_set.get(product=product)
         return composition.quantity
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['owner', 'name'], name='unique_subproduct_for_user')
+        ]
 
 
 class Product(BaseProduct):
@@ -78,6 +80,12 @@ class Product(BaseProduct):
 
     # def get_absolute_url(self):
     #     return reverse('product', args=[str(self.pk)])
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['owner', 'name'], name='unique_product_for_user')
+        ]
 
 
 class ProductComposition(models.Model):
@@ -121,3 +129,9 @@ class PackagingObject(BaseProduct):
 
     measure = models.ForeignKey(
         Measure, related_name='packaging_objects', on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['owner', 'name'], name='unique_packaging_for_user')
+        ]
