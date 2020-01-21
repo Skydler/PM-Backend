@@ -10,7 +10,7 @@ class BaseProduct(models.Model):
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
     current_amount = models.FloatField(
-        default=0, help_text='amount of product in existence')
+        default=0, help_text='amount in milliliters')
 
     def __str__(self):
         return self.name
@@ -64,7 +64,7 @@ class Product(BaseProduct):
             return product_amount
 
     @property
-    def base_price_liter(self):
+    def production_cost_liter(self):
         """
         Calculates the price of a liter of the product
         """
@@ -110,11 +110,11 @@ class Measure(models.Model):
         return f'Measure: {self.name} - {self.product.name}'
 
     @property
-    def production_cost(self):
-        product_price = self.product.base_price_liter * self.size
-        packaging_price = sum(
-            map(lambda obj: obj.price, self.packaging_objects))
-        return product_price + packaging_price
+    def total_cost(self):
+        product_cost = self.product.production_cost_liter * self.size
+        packaging_cost = sum(
+            map(lambda obj: obj.price, self.packaging_objects.all()))
+        return product_cost + packaging_cost
 
     class Meta:
         constraints = [

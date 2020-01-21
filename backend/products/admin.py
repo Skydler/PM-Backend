@@ -7,7 +7,7 @@ class SubProductAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'current_amount', 'base_price_liter',)
+    list_display = ('name', 'current_amount', 'production_cost_liter',)
 
 
 class ProductCompositionAdmin(admin.ModelAdmin):
@@ -16,7 +16,7 @@ class ProductCompositionAdmin(admin.ModelAdmin):
 
 class MeasureAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'size', 'price',
-                    'product', 'production_cost')
+                    'product', 'total_cost')
 
 
 class PackagingObjectAdmin(admin.ModelAdmin):
