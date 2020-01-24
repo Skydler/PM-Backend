@@ -1,6 +1,6 @@
 from django.db import models
 from users.models import CustomUser
-# from django.urls import reverse
+from django.urls import reverse
 
 
 class BaseProduct(models.Model):
@@ -10,7 +10,7 @@ class BaseProduct(models.Model):
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
     current_amount = models.FloatField(
-        default=0, help_text='amount in milliliters')
+        default=0, help_text='Amount in milliliters')
 
     def __str__(self):
         return self.name
@@ -40,6 +40,9 @@ class SubProduct(BaseProduct):
         composition = self.productcomposition_set.get(product=product)
         return composition.quantity
 
+    def get_absolute_url(self):
+        return reverse('subproducts', args=[str(self.pk)])
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -62,6 +65,7 @@ class Product(BaseProduct):
                 lambda comp: comp.calculate_units_for_product(self), components)
             product_amount = min(subproducts_makeable_amounts)
             return product_amount
+        return 0
 
     @property
     def production_cost_liter(self):
@@ -74,12 +78,13 @@ class Product(BaseProduct):
                 lambda comp: comp.calculate_price_with_quantity(self), components)
             price = sum(components_prices)
             return price
+        return 0
 
     def get_components(self):
         return self.components.all()
 
-    # def get_absolute_url(self):
-    #     return reverse('product', args=[str(self.pk)])
+    def get_absolute_url(self):
+        return reverse('products', args=[str(self.pk)])
 
     class Meta:
         constraints = [
@@ -92,19 +97,24 @@ class ProductComposition(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     subproduct = models.ForeignKey(SubProduct, on_delete=models.CASCADE)
 
-    quantity = models.FloatField(help_text='quantity in milliliters')
+    quantity = models.FloatField(help_text='Quantity in milliliters')
 
     def __str__(self):
         return f'Product Composition: {self.id}'
 
+    def get_absolute_url(self):
+        return reverse('compositions', args=[str(self.pk)])
+
 
 class Measure(models.Model):
     name = models.CharField(max_length=30)
-    size = models.FloatField(help_text='size in liters')
-    price = models.FloatField(help_text='selling price')
+    size = models.FloatField(help_text='Size in liters')
+    price = models.FloatField(help_text='Selling price')
 
     product = models.ForeignKey(
         Product, related_name='measures', on_delete=models.CASCADE)
+
+    packaging_objects = models.ManyToManyField('PackagingObject', blank=True)
 
     def __str__(self):
         return f'Measure: {self.name} - {self.product.name}'
@@ -115,6 +125,9 @@ class Measure(models.Model):
         packaging_cost = sum(
             map(lambda obj: obj.price, self.packaging_objects.all()))
         return product_cost + packaging_cost
+
+    def get_absolute_url(self):
+        return reverse('measures', args=[str(self.pk)])
 
     class Meta:
         constraints = [
@@ -127,8 +140,8 @@ class PackagingObject(BaseProduct):
     current_amount = models.IntegerField()
     price = models.FloatField()
 
-    measure = models.ForeignKey(
-        Measure, related_name='packaging_objects', on_delete=models.CASCADE)
+    def get_absolute_url(self):
+        return reverse('packaging', args=[str(self.pk)])
 
     class Meta:
         constraints = [
