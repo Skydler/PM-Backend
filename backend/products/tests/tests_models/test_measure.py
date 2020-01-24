@@ -12,8 +12,8 @@ class MeasureTest(TestCase):
 
         self.create_subproducts()
         self.create_product()
-        self.create_measure()
         self.create_packaging()
+        self.create_measure()
 
     @classmethod
     def create_subproducts(self):
@@ -33,16 +33,18 @@ class MeasureTest(TestCase):
             self.subp2, through_defaults={'quantity': 200})
 
     @classmethod
+    def create_packaging(self):
+        self.pack1 = PackagingObject.objects.create(
+            name='Etiqueta', owner=self.user, current_amount=10, price=40)
+        self.pack2 = PackagingObject.objects.create(
+            name='Envase medio litro', owner=self.user, current_amount=20, price=70)
+
+    @classmethod
     def create_measure(self):
         self.measure = Measure.objects.create(
             name='Medio Litro', size=0.5, price=400, product=self.product)
 
-    @classmethod
-    def create_packaging(self):
-        self.pack1 = PackagingObject.objects.create(
-            name='Etiqueta', owner=self.user, current_amount=10, price=40, measure=self.measure)
-        self.pack2 = PackagingObject.objects.create(
-            name='Envase medio litro', owner=self.user, current_amount=20, price=70, measure=self.measure)
+        self.measure.packaging_objects.add(self.pack1, self.pack2)
 
     def test_total_cost(self):
         product_cost = self.product.production_cost_liter * self.measure.size
