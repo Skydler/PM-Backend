@@ -4,6 +4,7 @@ from .fields import UserProductsField, UserSubProductsField, UserPackagingObject
 
 
 class ProductCompositionSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     subproduct = UserSubProductsField(view_name='subproduct-detail')
     product = UserProductsField(view_name='product-detail')
 
@@ -13,6 +14,7 @@ class ProductCompositionSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SubProductSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
@@ -21,6 +23,7 @@ class SubProductSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     owner = serializers.ReadOnlyField(source='owner.username')
 
     components = UserSubProductsField(
@@ -37,6 +40,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class MeasureSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     product = UserProductsField(view_name='product-detail')
     packaging_objects = UserPackagingObjectsField(
         view_name='packagingobject-detail', many=True)
@@ -49,6 +53,7 @@ class MeasureSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PackagingSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:

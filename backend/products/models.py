@@ -70,7 +70,7 @@ class Product(BaseProduct):
     @property
     def production_cost_liter(self):
         """
-        Calculates the price of a liter of the product
+        Calculates the price of a liter of product
         """
         components = self.get_components()
         if components:
