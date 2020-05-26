@@ -22,20 +22,20 @@ class ProductTest(TestCase):
         self.assertEqual(self.product.makeable_amount, 0)
 
     def test_makeable_amount(self):
-        self.product.components.add(
-            self.subp1, through_defaults={'quantity': 500})
-        self.product.components.add(
-            self.subp2, through_defaults={'quantity': 200})
+        self.composition1 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp1, quantity=500)
+        self.composition2 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp2, quantity=200)
 
         expected_amount = 2000 / 500
 
         self.assertEqual(self.product.makeable_amount, expected_amount)
 
     def test_makeable_amount_with_changed_quantity(self):
-        self.product.components.add(
-            self.subp1, through_defaults={'quantity': 500})
-        self.product.components.add(
-            self.subp2, through_defaults={'quantity': 200})
+        self.composition1 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp1, quantity=500)
+        self.composition2 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp2, quantity=200)
 
         composition = ProductComposition.objects.get(
             product=self.product, subproduct=self.subp2)
@@ -52,19 +52,19 @@ class ProductTest(TestCase):
         self.assertEqual(self.product.production_cost_liter, 0)
 
     def test_production_cost_liter(self):
-        self.product.components.add(
-            self.subp1, through_defaults={'quantity': 500})
-        self.product.components.add(
-            self.subp2, through_defaults={'quantity': 200})
+        self.composition1 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp1, quantity=500)
+        self.composition2 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp2, quantity=200)
 
         expected_price = 500 * self.PRICE_SUBP + 200 * self.PRICE_SUBP
         self.assertEqual(self.product.production_cost_liter, expected_price)
 
     def test_production_cost_liter_with_changed_quantity(self):
-        self.product.components.add(
-            self.subp1, through_defaults={'quantity': 500})
-        self.product.components.add(
-            self.subp2, through_defaults={'quantity': 200})
+        self.composition1 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp1, quantity=500)
+        self.composition2 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp2, quantity=200)
 
         composition = ProductComposition.objects.get(
             product=self.product, subproduct=self.subp2)

@@ -1,6 +1,6 @@
 from django.test import TestCase
 from users.models import CustomUser
-from products.models import Product, SubProduct, PackagingObject, Measure
+from products.models import Product, SubProduct, PackagingObject, Measure, ProductComposition
 
 
 class MeasureTest(TestCase):
@@ -27,10 +27,10 @@ class MeasureTest(TestCase):
         self.product = Product.objects.create(
             name='Brasilero', owner=self.user)
 
-        self.product.components.add(
-            self.subp1, through_defaults={'quantity': 500})
-        self.product.components.add(
-            self.subp2, through_defaults={'quantity': 200})
+        self.composition1 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp1, quantity=500)
+        self.composition2 = ProductComposition.objects.create(
+            product=self.product, subproduct=self.subp2, quantity=200)
 
     @classmethod
     def create_packaging(self):

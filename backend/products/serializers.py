@@ -26,8 +26,9 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
     owner = serializers.ReadOnlyField(source='owner.username')
 
-    components = UserSubProductsField(
-        view_name='subproduct-detail', many=True, read_only=True)
+    compositions = serializers.HyperlinkedRelatedField(
+        view_name='productcomposition-detail', many=True, read_only=True)
+
     measures = serializers.HyperlinkedRelatedField(
         view_name='measure-detail', many=True, read_only=True)
 
