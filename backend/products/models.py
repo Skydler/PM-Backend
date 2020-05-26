@@ -22,23 +22,13 @@ class BaseProduct(models.Model):
 class SubProduct(BaseProduct):
     price = models.FloatField(help_text='Price of a milliliter of the product')
 
-    def calculate_units_for_product(self, product):
-        """
-        Calculates how many units of a product are makeable with the existent subproduct
-        """
-        needed_amount = self.get_quantity_for_product(product)
-        return self.current_amount / needed_amount
+    def calculate_units_for_amount(self, amount):
+        # TODO Need to restrict this to milliliters input
+        return self.current_amount / amount
 
-    def calculate_price_with_quantity(self, product):
-        """
-        Calculates the price of the subproduct considering the quantity that composes a product
-        """
-        quantity = self.get_quantity_for_product(product)
-        return quantity * self.price
-
-    def get_quantity_for_product(self, product):
-        composition = self.productcomposition_set.get(product=product)
-        return composition.quantity
+    def calculate_price_for_amount(self, amount):
+        # TODO Need to restrict this to milliliters input
+        return self.price * amount
 
     def get_absolute_url(self):
         return reverse('subproducts', args=[str(self.pk)])
@@ -51,18 +41,16 @@ class SubProduct(BaseProduct):
 
 
 class Product(BaseProduct):
-    components = models.ManyToManyField(
-        SubProduct, blank=True, through='ProductComposition')
 
     @property
     def makeable_amount(self):
         """
         Calculates the amount of product makeable with the existent subproducts.
         """
-        components = self.get_components()
-        if components:
+        compositions = self.get_compositions()
+        if compositions:
             subproducts_makeable_amounts = map(
-                lambda comp: comp.calculate_units_for_product(self), components)
+                lambda comp: comp.calculate_units_of_subproduct(), compositions)
             product_amount = min(subproducts_makeable_amounts)
             return product_amount
         return 0
@@ -72,16 +60,16 @@ class Product(BaseProduct):
         """
         Calculates the price of a liter of product
         """
-        components = self.get_components()
-        if components:
+        compositions = self.get_compositions()
+        if compositions:
             components_prices = map(
-                lambda comp: comp.calculate_price_with_quantity(self), components)
+                lambda comp: comp.get_cost(), compositions)
             price = sum(components_prices)
             return price
         return 0
 
-    def get_components(self):
-        return self.components.all()
+    def get_compositions(self):
+        return self.compositions.all()
 
     def get_absolute_url(self):
         return reverse('products', args=[str(self.pk)])
@@ -94,10 +82,17 @@ class Product(BaseProduct):
 
 
 class ProductComposition(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='compositions')
     subproduct = models.ForeignKey(SubProduct, on_delete=models.CASCADE)
 
     quantity = models.FloatField(help_text='Quantity in milliliters')
+
+    def calculate_units_of_subproduct(self):
+        return self.subproduct.calculate_units_for_amount(self.quantity)
+
+    def get_cost(self):
+        return self.subproduct.calculate_price_for_amount(self.quantity)
 
     def __str__(self):
         return f'Product Composition: {self.id}'
@@ -122,9 +117,13 @@ class Measure(models.Model):
     @property
     def total_cost(self):
         product_cost = self.product.production_cost_liter * self.size
-        packaging_cost = sum(
-            map(lambda obj: obj.price, self.packaging_objects.all()))
+        packaging_cost = self.calculate_packaging_cost()
         return product_cost + packaging_cost
+
+    def calculate_packaging_cost(self):
+        packaing_prices = map(lambda obj: obj.price, self.packaging_objects.all())
+        packaging_cost = sum(packaing_prices)
+        return packaging_cost
 
     def get_absolute_url(self):
         return reverse('measures', args=[str(self.pk)])
