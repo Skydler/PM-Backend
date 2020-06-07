@@ -27,7 +27,7 @@ SECRET_KEY = '65@jy0z(%3%$^o066*a(!y#uvrz42@*!&pc)nlra_t&5gua9-^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -146,10 +146,12 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-CORS_ORIGIN_WHITELIST = (
-    'http://localhost:3000',
-    'https://skydler.github.io/'
-)
+CORS_ORIGIN_ALLOW_ALL = True
+
+# CORS_ORIGIN_WHITELIST = (
+#     'http://localhost:3000',
+#     'https://skydler.github.io'
+# )
 
 # Authentication settings for DRF
 
