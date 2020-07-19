@@ -47,7 +47,7 @@ class MeasureTest(TestCase):
         self.measure.packaging_objects.add(self.pack1, self.pack2)
 
     def test_total_cost(self):
-        product_cost = self.product.production_cost_liter * self.measure.size
+        product_cost = self.product.price * self.measure.size
         packaging_cost = 40 + 70
         total_cost = product_cost + packaging_cost
 

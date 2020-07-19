@@ -32,7 +32,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     measures = serializers.HyperlinkedRelatedField(
         view_name='measure-detail', many=True, read_only=True)
 
-    production_cost_liter = serializers.FloatField(read_only=True)
+    price = serializers.FloatField(read_only=True)
     makeable_amount = serializers.FloatField(read_only=True)
 
     class Meta:

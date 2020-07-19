@@ -48,19 +48,19 @@ class ProductTest(TestCase):
         self.assertNotEqual(self.product.makeable_amount, old_amount)
         self.assertEqual(self.product.makeable_amount, expected_amount)
 
-    def test_production_cost_liter_without_components(self):
-        self.assertEqual(self.product.production_cost_liter, 0)
+    def test_price_without_components(self):
+        self.assertEqual(self.product.price, 0)
 
-    def test_production_cost_liter(self):
+    def test_price(self):
         self.composition1 = ProductComposition.objects.create(
             product=self.product, subproduct=self.subp1, quantity=500)
         self.composition2 = ProductComposition.objects.create(
             product=self.product, subproduct=self.subp2, quantity=200)
 
         expected_price = 500 * self.PRICE_SUBP + 200 * self.PRICE_SUBP
-        self.assertEqual(self.product.production_cost_liter, expected_price)
+        self.assertEqual(self.product.price, expected_price)
 
-    def test_production_cost_liter_with_changed_quantity(self):
+    def test_price_with_changed_quantity(self):
         self.composition1 = ProductComposition.objects.create(
             product=self.product, subproduct=self.subp1, quantity=500)
         self.composition2 = ProductComposition.objects.create(
@@ -74,5 +74,5 @@ class ProductTest(TestCase):
         old_price = 500 * self.PRICE_SUBP + 200 * self.PRICE_SUBP
         expected_price = 500 * self.PRICE_SUBP + 1000 * self.PRICE_SUBP
 
-        self.assertNotEqual(self.product.production_cost_liter, old_price)
-        self.assertEqual(self.product.production_cost_liter, expected_price)
+        self.assertNotEqual(self.product.price, old_price)
+        self.assertEqual(self.product.price, expected_price)

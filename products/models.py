@@ -6,11 +6,8 @@ from django.urls import reverse
 class BaseProduct(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200, blank=True)
-
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-
-    current_amount = models.FloatField(
-        default=0, help_text='Amount in milliliters')
+    current_amount = models.FloatField(default=0, help_text='Amount in liters')
 
     def __str__(self):
         return self.name
@@ -20,7 +17,7 @@ class BaseProduct(models.Model):
 
 
 class SubProduct(BaseProduct):
-    price = models.FloatField(help_text='Price of a milliliter of the product')
+    price = models.FloatField(help_text='Price of a liter')
 
     def calculate_units_for_amount(self, amount):
         # TODO Need to restrict this to milliliters input
@@ -56,9 +53,9 @@ class Product(BaseProduct):
         return 0
 
     @property
-    def production_cost_liter(self):
+    def price(self):
         """
-        Calculates the price of a liter of product
+        Calculates the price of a liter of product in relation to subproducts costs
         """
         compositions = self.get_compositions()
         if compositions:
@@ -86,7 +83,7 @@ class ProductComposition(models.Model):
         Product, on_delete=models.CASCADE, related_name='compositions')
     subproduct = models.ForeignKey(SubProduct, on_delete=models.CASCADE)
 
-    quantity = models.FloatField(help_text='Quantity in milliliters')
+    quantity = models.FloatField(help_text='Quantity in liters')
 
     def calculate_units_of_subproduct(self):
         return self.subproduct.calculate_units_for_amount(self.quantity)
@@ -116,12 +113,13 @@ class Measure(models.Model):
 
     @property
     def total_cost(self):
-        product_cost = self.product.production_cost_liter * self.size
+        product_cost = self.product.price * self.size
         packaging_cost = self.calculate_packaging_cost()
         return product_cost + packaging_cost
 
     def calculate_packaging_cost(self):
-        packaing_prices = map(lambda obj: obj.price, self.packaging_objects.all())
+        packaing_prices = map(lambda obj: obj.price,
+                              self.packaging_objects.all())
         packaging_cost = sum(packaing_prices)
         return packaging_cost
 

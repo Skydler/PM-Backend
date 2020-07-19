@@ -7,7 +7,7 @@ class SubProductAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'current_amount', 'production_cost_liter', 'owner')
+    list_display = ('name', 'current_amount', 'price', 'owner')
 
 
 class ProductCompositionAdmin(admin.ModelAdmin):
