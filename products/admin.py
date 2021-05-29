@@ -3,24 +3,28 @@ from .models import Product, ProductComposition, Measure, SubProduct, PackagingO
 
 
 class SubProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'current_amount', 'price', 'owner')
+    list_display = ("name", "current_amount", "price", "owner")
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'current_amount', 'price', 'owner')
+    list_display = ("name", "current_amount", "cost", "owner")
 
 
 class ProductCompositionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'product', 'subproduct', 'quantity',)
+    list_display = (
+        "id",
+        "product",
+        "subproduct",
+        "quantity",
+    )
 
 
 class MeasureAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'size', 'price',
-                    'product', 'total_cost')
+    list_display = ("id", "name", "size", "price", "product", "total_cost")
 
 
 class PackagingObjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'current_amount', 'price', 'owner')
+    list_display = ("name", "current_amount", "price", "owner")
 
 
 admin.site.register(SubProduct, SubProductAdmin)
