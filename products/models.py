@@ -129,13 +129,6 @@ class Measure(models.Model):
     def get_absolute_url(self):
         return reverse("measures", args=[str(self.pk)])
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["product", "size"], name="unique_size_for_product"
-            )
-        ]
-
 
 class PackagingObject(BaseProduct):
     current_amount = models.IntegerField()
