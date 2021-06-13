@@ -1,7 +1,14 @@
 from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .models import Product, ProductComposition, SubProduct, Measure, PackagingObject
-from .serializers import (ProductSerializer, ProductCompositionSerializer,
-                          SubProductSerializer, MeasureSerializer, PackagingSerializer)
+from .serializers import (
+    ProductSerializer,
+    ProductCompositionSerializer,
+    SubProductSerializer,
+    MeasureSerializer,
+    PackagingSerializer,
+)
 from .permissions import IsOwnerOrReadOnly
 
 
@@ -19,6 +26,39 @@ class ProductViewSet(viewsets.ModelViewSet):
     def filter_queryset(self, queryset):
         user_objs = queryset.filter(owner=self.request.user)
         return user_objs
+
+    @action(detail=True)
+    def components_data(self, request, pk=None):
+        product = self.get_object()
+        subproducts = [comp.subproduct for comp in product.compositions.all()]
+        not_used_subproduct_objs = SubProduct.objects.exclude(
+            id__in=[subp.id for subp in subproducts]
+        )
+
+        compositions = ProductCompositionSerializer(
+            product.compositions, many=True, context={"request": request}
+        )
+        usedSubproducts = SubProductSerializer(
+            subproducts, many=True, context={"request": request}
+        )
+        notUsedSubproducts = SubProductSerializer(
+            not_used_subproduct_objs, many=True, context={"request": request}
+        )
+        packaging = PackagingSerializer(
+            PackagingObject.objects.all(), many=True, context={"request": request}
+        )
+        measures = MeasureSerializer(
+            product.measures, many=True, context={"request": request}
+        )
+
+        components_data = {
+            "compositions": compositions.data,
+            "usedSubproducts": usedSubproducts.data,
+            "notUsedSubproducts": notUsedSubproducts.data,
+            "packagingObjects": packaging.data,
+            "measures": measures.data,
+        }
+        return Response(components_data)
 
 
 class SubProductViewSet(viewsets.ModelViewSet):
