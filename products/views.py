@@ -1,10 +1,18 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Product, ProductComposition, SubProduct, Measure, PackagingObject
+from .models import (
+    Product,
+    ProductComposition,
+    SalesRecord,
+    SubProduct,
+    Measure,
+    PackagingObject,
+)
 from .serializers import (
     ProductSerializer,
     ProductCompositionSerializer,
+    SalesSerializer,
     SubProductSerializer,
     MeasureSerializer,
     PackagingSerializer,
@@ -106,6 +114,22 @@ class MeasureViewSet(viewsets.ModelViewSet):
 class PackagingViewSet(viewsets.ModelViewSet):
     queryset = PackagingObject.objects.all()
     serializer_class = PackagingSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsOwnerOrReadOnly,
+    ]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def filter_queryset(self, queryset):
+        user_objs = queryset.filter(owner=self.request.user)
+        return user_objs
+
+
+class SalesViewSet(viewsets.ModelViewSet):
+    queryset = SalesRecord.objects.all()
+    serializer_class = SalesSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         IsOwnerOrReadOnly,

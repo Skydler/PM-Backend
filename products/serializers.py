@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from .models import Product, SubProduct, ProductComposition, Measure, PackagingObject
+from .models import (
+    Product,
+    SalesRecord,
+    SubProduct,
+    ProductComposition,
+    Measure,
+    PackagingObject,
+)
 from .fields import UserProductsField, UserSubProductsField, UserPackagingObjectsField
 
 
@@ -62,4 +69,13 @@ class PackagingSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = PackagingObject
+        fields = "__all__"
+
+
+class SalesSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+    owner = serializers.ReadOnlyField(source="owner.username")
+
+    class Meta:
+        model = SalesRecord
         fields = "__all__"

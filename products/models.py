@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import CustomUser
 from django.urls import reverse
+from datetime import datetime
 
 
 class BaseProduct(models.Model):
@@ -143,3 +144,18 @@ class PackagingObject(BaseProduct):
                 fields=["owner", "name"], name="unique_packaging_for_user"
             )
         ]
+
+
+class SalesRecord(models.Model):
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    date = models.DateTimeField(default=datetime.now)
+    product_sold = models.CharField(max_length=30)
+    liters_sold = models.FloatField()
+    price = models.FloatField()
+
+    measure = models.ForeignKey(
+        Measure, related_name="+", on_delete=models.SET_NULL, null=True
+    )
+
+    def get_absolute_url(self):
+        return reverse("sales", args=[str(self.pk)])
