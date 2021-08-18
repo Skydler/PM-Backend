@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from .models import (
     Product,
     ProductComposition,
@@ -136,7 +137,16 @@ class SalesViewSet(viewsets.ModelViewSet):
     ]
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        sale = serializer.validated_data
+        product = Product.objects.filter(name=sale["product_sold"])[0]
+        if product.current_amount - sale["liters_sold"] >= 0:
+            product.current_amount -= sale["liters_sold"]
+            product.save()
+            serializer.save(owner=self.request.user)
+        else:
+            raise ValidationError(
+                {"not_enough_product": "Product doesn't have that amount to sell"}
+            )
 
     def filter_queryset(self, queryset):
         user_objs = queryset.filter(owner=self.request.user)

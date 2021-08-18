@@ -115,13 +115,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+USE_TZ = True
+TIME_ZONE = "America/Argentina/Buenos_Aires"
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 

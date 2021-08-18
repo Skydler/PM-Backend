@@ -29,26 +29,6 @@ class SubProductSerializer(serializers.HyperlinkedModelSerializer):
         fields = "__all__"
 
 
-class ProductSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
-    owner = serializers.ReadOnlyField(source="owner.username")
-
-    compositions = serializers.HyperlinkedRelatedField(
-        view_name="productcomposition-detail", many=True, read_only=True
-    )
-
-    measures = serializers.HyperlinkedRelatedField(
-        view_name="measure-detail", many=True, read_only=True
-    )
-
-    cost = serializers.FloatField(read_only=True)
-    makeable_amount = serializers.FloatField(read_only=True)
-
-    class Meta:
-        model = Product
-        fields = "__all__"
-
-
 class MeasureSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
     product = UserProductsField(view_name="product-detail")
@@ -60,6 +40,24 @@ class MeasureSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Measure
+        fields = "__all__"
+
+
+class ProductSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+    owner = serializers.ReadOnlyField(source="owner.username")
+
+    compositions = serializers.HyperlinkedRelatedField(
+        view_name="productcomposition-detail", many=True, read_only=True
+    )
+
+    measures = MeasureSerializer(many=True, read_only=True)
+
+    cost = serializers.FloatField(read_only=True)
+    makeable_amount = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = Product
         fields = "__all__"
 
 
